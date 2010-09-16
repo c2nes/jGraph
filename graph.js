@@ -301,7 +301,7 @@ function getRelativeMousePosition(evt) {
     var x = element.offsetLeft;
     var y = element.offsetTop;
 
-    return new Point(evt.clientX - x, evt.clientY - y);
+    return new Point(evt.clientX - x + window.scrollX, evt.clientY - y + window.scrollY);
 }
 
 function Display() {
