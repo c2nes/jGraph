@@ -1,22 +1,23 @@
 
-SVG_NS = "http://www.w3.org/2000/svg"
-VERTEX_R = 10;
+var SVG_NS = "http://www.w3.org/2000/svg"
+var VERTEX_R = 10;
+var POLY_R = 100;
 
-mode = "v";
+var mode = "v";
 
-dragActive = false;
-dragIgnoreMouseUp = false;
-activeVertex = null;
+var dragActive = false;
+var dragIgnoreMouseUp = false;
+var activeVertex = null;
 
-vertexSet = new Set();
-edgeSet = new Set();
+var vertexSet = new List();
+var edgeSet = new List();
 
 function Point(x, y) {
     this.x = x;
     this.y = y;
 }
 
-function Set(values) {
+function List(values) {
     if(values) {
         this.data = new Array(values);
     } else {
@@ -28,7 +29,7 @@ function Set(values) {
     }
     
     this.remove = function(item) {
-        index = this.data.indexOf(item);
+        var index = this.data.indexOf(item);
         if(index == -1) {
             return false;
         }
@@ -66,19 +67,23 @@ function Set(values) {
     }
 
     this.forEach = function(f) {
-        cp = this.data.slice(0);
+        var cp = this.data.slice(0);
         for(var i = 0; i < cp.length; i++) {
             f(cp[i]);
         }
     }
 
     this.map = function(f) {
-        r = [];
+        var r = [];
         for(var i = 0; i < this.getSize(); i++) {
             r.push(f(this.get(i)));
         }
 
-        return new Set(r);
+        return new List(r);
+    }
+
+    this.clone = function() {
+        return new List(this.data.slice(0));
     }
 }
 
@@ -146,31 +151,23 @@ function Vertex() {
                                               activeVertex.el_cir.setAttributeNS(null, "fill", "#ff0000");
                                           } else {
                                               if(this.vertex != activeVertex) {
-                                                  e = new Edge(this.vertex, activeVertex);
+                                                  var e = new Edge(this.vertex, activeVertex);
+                                                  var v = this.vertex;
+
                                                   edgeSet.append(e);
-                                                  this.vertex.redrawEdges();
+                                                  v.redrawEdges();
                                                   activeVertex.redrawEdges();
+
                                                   e.drawTo(document.getElementById("edges"));
                                               }
                                               activeVertex.el_cir.setAttributeNS(null, "fill", "#0000ff");
                                               activeVertex = null;
                                           }
                                       } else if(mode == "v" && evt.shiftKey) {
-                                          v = this.vertex;
-                                          vertexSet.remove(v);
-
-                                          edgeSet.forEach(function(edge) {
-                                              if(edge.vertices.indexOf(v) != -1) {
-                                                  edge.remove();
-                                              }
-                                          });
-
-                                          v.el_group.parentNode.removeChild(v.el_group);
-                                          v.el_mask.parentNode.removeChild(v.el_mask);
-                                          
+                                          this.vertex.remove();
                                           evt.stopPropagation();
                                       } else if(mode == "l") {
-                                          name = prompt("Name");
+                                          var name = prompt("Name");
                                           if(name != null) {
                                               this.vertex.el_label.textContent = name;
                                           }
@@ -179,6 +176,25 @@ function Vertex() {
                                   false);
 
     this.position = Point(0, 0);
+
+    this.remove = function() {
+        var v = this;
+        
+        edgeSet.forEach(function(edge) {
+            if(edge.vertices.indexOf(v) != -1) {
+                edge.remove();
+            }
+        });
+        vertexSet.remove(this);
+        
+        this.el_group.parentNode.removeChild(this.el_group);
+        this.el_mask.parentNode.removeChild(this.el_mask);
+    }
+
+
+    this.getPosition = function() {
+        return this.position;
+    }
 
     this.move = function(position) {
         this.position = position;
@@ -197,7 +213,7 @@ function Vertex() {
     }
 
     this.redrawEdges = function() {
-        v = this;
+        var v = this;
 
         edgeSet.forEach(function(edge) {
             for(var i = 0; i < 2; i++) {
@@ -236,7 +252,7 @@ function Edge(p, q) {
     this.el_line.addEventListener("click",
                                   function(evt) {
                                       if(evt.shiftKey && mode == "e") {
-                                          e = this.edge;
+                                          var e = this.edge;
                                           e.remove();
                                       }
                                   },
@@ -245,7 +261,7 @@ function Edge(p, q) {
     this.el_line.addEventListener("mouseover",
                                   function(evt) {
                                       if(mode == "e" && evt.shiftKey) {
-                                          e = this.edge;
+                                          var e = this.edge;
                                           e.el_line.setAttributeNS(null, "stroke-width", "6");
                                       }
                                   },
@@ -254,7 +270,7 @@ function Edge(p, q) {
     this.el_line.addEventListener("mouseout",
                                   function(evt) {
                                       if(mode == "e") {
-                                          e = this.edge;
+                                          var e = this.edge;
                                           e.el_line.setAttributeNS(null, "stroke-width", "2");
                                       }
                                   },
@@ -281,10 +297,9 @@ function Edge(p, q) {
 }
 
 function getRelativeMousePosition(evt) {
-    element = document.getElementById("displayCont");
-
-    x = element.offsetLeft;
-    y = element.offsetTop;
+    var element = document.getElementById("displayCont");
+    var x = element.offsetLeft;
+    var y = element.offsetTop;
 
     return new Point(evt.clientX - x, evt.clientY - y);
 }
@@ -301,11 +316,11 @@ function addVertex(evt) {
         return;
     }
     
-    mousePos = getRelativeMousePosition(evt, Display());
+    var mousePos = getRelativeMousePosition(evt);
     mousePos.x -= 5;
     mousePos.y -= 5;
 
-    v = new Vertex();
+    var v = new Vertex();
     v.move(mousePos);
     vertexSet.append(v);
 
@@ -315,9 +330,8 @@ function addVertex(evt) {
 
 function mouseMove(evt) {
     evt.preventDefault();
-
     if(dragActive) {
-        mousePos = getRelativeMousePosition(evt, Display());
+        mousePos = getRelativeMousePosition(evt);
         mousePos.x -= 5;
         mousePos.y -= 5;
 
@@ -343,6 +357,7 @@ function setStatus() {
 
 function existsEdge(p, q) {
     var found = false;
+
     edgeSet.forEach(function(edge) {
         if((edge.vertices[0] == p && edge.vertices[1] == q) ||
            (edge.vertices[0] == q && edge.vertices[1] == p)) {
@@ -354,7 +369,8 @@ function existsEdge(p, q) {
 }
 
 function invertGraph() {
-    newEdgeSet = new Set();
+    var newEdgeSet = new List();
+    var p, q, e;
 
     /* Construct a new edge list of all possible edges, except those already existing */
     for(var i = 0; i < vertexSet.getSize(); i++) {
@@ -383,6 +399,40 @@ function removeAllEdges() {
     });
 }
 
+function removeAllVertices() {
+    document.getElementById("dummy-button").focus();
+    vertexSet.forEach(function(vertex) {
+        vertex.remove();
+    });
+}
+
+function makePolygon() {
+    var size = vertexSet.getSize();
+    var cx = 0;
+    var cy = 0;
+
+    vertexSet.forEach(function(v) {
+        pos = v.getPosition();
+        cx += pos.x;
+        cy += pos.y;
+    });
+
+    cx = Math.floor(cx / size);
+    cy = Math.floor(cy / size);
+
+    function vertexPosition(n) {
+        var angle = ((n - 1) / size) * Math.PI * 2;
+        var x = cx + POLY_R * Math.cos(angle);
+        var y = cy + POLY_R * Math.sin(angle);
+
+        return new Point(x, y);
+    }
+
+    for(var i = 0; i < vertexSet.getSize(); i++) {
+        vertexSet.get(i).move(vertexPosition(i));
+    }
+}
+
 function getKeyCode(c) {
     return c.charCodeAt(0);
 }
@@ -398,10 +448,12 @@ function init() {
                                       dragActive = false;
                                   } else if(evt.keyCode == getKeyCode('L')) {
                                       mode = "l";
-                                  } else if(evt.shiftKey && evt.keyCode == getKeyCode('I')) {
+                                  } else if(evt.keyCode == getKeyCode('C')) {
                                       invertGraph();
-                                  } else if(evt.shiftKey && evt.keyCode == getKeyCode('C')) {
+                                  } else if(evt.shiftKey && evt.keyCode == getKeyCode('R')) {
                                       removeAllEdges();
+                                  } else if(evt.shiftKey && evt.keyCode == getKeyCode('P')) {
+                                      makePolygon();
                                   } else {
                                       return;
                                   }
