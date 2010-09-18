@@ -9,7 +9,23 @@
         text-align: left;
       }
       
-      div#controls input {
+      #controls {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #controls td {
+        margin: 0;
+        padding: 0;
+      }
+
+      #controls tr {
+        margin: 0;
+        padding: 0;
+      }
+
+      #controls input {
         background-color: #ddddff;
         border: none;
         border-right: solid 1px black;
@@ -17,7 +33,7 @@
         margin: 0;
       }
 
-      div#controls input#dummy-button {
+      #controls input#dummy-button {
         background-color: white;
         border: none;
         border-right: none;
@@ -35,7 +51,7 @@
         <h1>Make a graph!</h1>
         
         <div id="dashboard" style="border: solid 1px black; width: 100%">
-          <div id="displayCont" style="border-bottom: solid 1px black; height: 400px; width: 100%;">
+          <div id="display-cont" style="border-bottom: solid 1px black; height: 400px; width: 100%;">
             <svg:svg version="1.1" id="display" width="100%" height="100%" style="clear: left" >
               <svg:rect width="100%" height="100%" fill="white" />
               <svg:mask id="vertices-mask">
@@ -45,26 +61,31 @@
               <svg:g id="vertices"></svg:g>
             </svg:svg>
           </div>
-          <div id="controls" style="text-align:left">
-            <form action="#">
-              <input type="button" onmouseup="removeAllVertices();" value="Clear" /><input type="button" onmouseup="optimizeGraph();" value="Optimize" />
-              <input type="button" id="dummy-button" value=""  />
-            </form>
-          </div>
+          <table id="controls" cellspacing="0" cellpadding="0">
+            <tr>
+              <td style="text-align:left;">
+                <form action="#">
+                  <input type="button" onmouseup="removeAllVertices();" value="Clear" /><input type="button" onmouseup="optimizeGraph();" value="Optimize" />
+                  <input type="button" id="dummy-button" value=""  />
+                </form>
+              </td>
+              <td id="status" style="text-align: right; padding-right: 10px;"></td>
+            </tr>
+          </table>
         </div>
       </div>
 
-      <div style="">
-        <div id="status" style="width: 60%; float: left;">
-          <div id="status-e" style="display:none;" >
+      <div style="margin-top: 10px;">
+        <div id="info" style="width: 60%; float: left;">
+          <div id="info-e" style="display:none;" >
             Mode: <strong>Add/remove edges</strong>
             <p>To add an edge select a starting node followed by an ending node. To remove an edge click an edge will holding 'shift'.</p>
           </div>
-          <div id="status-v" style="display:none;" >
+          <div id="info-v" style="display:none;" >
             Mode: <strong>Add/remove/move vertices</strong>
             <p>Click in empty space to add a new vertex, click and drag an existing vertex to move it, or click a vertex while holding 'shift' to remove it</p>
           </div>
-          <div id="status-l" style="display:none;" >
+          <div id="info-l" style="display:none;" >
             Mode: <strong>Label vertices</strong>
             <p>Select a vertex to label it</p>
           </div>
